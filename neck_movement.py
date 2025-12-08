@@ -5,8 +5,7 @@ from ultralytics import YOLO
 
 cap = cv2.VideoCapture(0)
 model = YOLO("yolov8n-face.pt")  
-target_count = 5 
-threshold = 80        
+target_count = 6
 
 count = 0
 last_center_x = None

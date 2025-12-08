@@ -25,7 +25,9 @@ def main():
     exercises = [
         # iris_x_exercise(),
         # blink(),
-        forward_back()
+        # forward_back(),
+        # left_right(),
+        find_movement()
     ]
 
     cap = cv2.VideoCapture(0)
@@ -38,8 +40,8 @@ def main():
         frame = cv2.flip(frame1, 1)
         frame, done = exercises[current].process_frame(frame)
 
-        # cv2.putText(frame, f"Exercise {current+1}/{len(exercises)}", (20,40),
-        #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+        cv2.putText(frame, f"Exercise {current+1}/{len(exercises)}", (20,40),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
 
         cv2.imshow("Workout", frame)
 
