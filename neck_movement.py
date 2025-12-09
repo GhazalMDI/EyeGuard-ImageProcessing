@@ -24,19 +24,19 @@ def found_neck(results, frame, x=False, y=False):
             return (y1 + y2) // 2
     return None
 
-def check_move_right_left(current_angle, last_angle, direction, count, baseline_angle):
+# def check_move_right_left(current_angle, last_angle, direction, count, baseline_angle):
 
-    if current_angle is None or last_angle is None or baseline_angle is None:
-        return current_angle, direction, count
+#     if current_angle is None or last_angle is None or baseline_angle is None:
+#         return current_angle, direction, count
 
-    angle_diff = current_angle - baseline_angle
+#     angle_diff = current_angle - baseline_angle
 
-    if -3 <= angle_diff <= 3 and direction != "right":
-        direction = "right"
-        count += 1
-    elif angle_diff < -3 or angle_diff > 3:
-        direction = None 
-    return current_angle, direction, count
+#     if -3 <= angle_diff <= 3 and direction != "right":
+#         direction = "right"
+#         count += 1
+#     elif angle_diff < -3 or angle_diff > 3:
+#         direction = None 
+#     return current_angle, direction, count
 
 
 
