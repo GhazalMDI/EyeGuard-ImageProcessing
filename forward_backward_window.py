@@ -12,15 +12,10 @@ class forward_back:
         self.count = 0
         self.direction = None
 
-        self.baseline_angle = None     # اولین زاویه
-        self.last_angle = None         # آخرین زاویه
-
-
-   
+        self.baseline_angle = None     
+        self.last_angle = None        
 
     def process_frame(self, frame):
-
-
         def get_face_angle(results):
             for r in results:
                 if r.boxes is None or len(r.boxes) == 0:
@@ -39,7 +34,6 @@ class forward_back:
 
             return None
 
-
         # YOLO detection
         results = self.model(frame, stream=True)
         out = get_face_angle(results)
@@ -47,7 +41,7 @@ class forward_back:
         if out is None:
             cv2.putText(frame, "Face not detected!", (20, 200),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-            return frame, False
+            return frame, False, self.count
 
         angle, cy = out
 
@@ -55,9 +49,7 @@ class forward_back:
         if self.baseline_angle is None:
             self.baseline_angle = angle
             self.last_angle = angle
-            return frame, False
-
-        angle_diff = abs(angle - self.baseline_angle)
+            return frame, False, self.count
 
         # -------- شمارش بر اساس منطق قبلی --------
         angle, self.direction, self.count = check_forward_backward(
@@ -70,16 +62,6 @@ class forward_back:
 
         self.last_angle = angle  # ذخیره زاویه قبلی
 
-        # -------- UI --------
-        max_angle = 30
-        progress = min(angle_diff / max_angle, 1.0)
-        bar_w = int(progress * 300)
-
-        cv2.putText(frame, f"Count: {self.count}/{self.target_count}", (20, 90),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-
-        # -------- پایان تمرین --------
-        if self.count >= self.target_count:
-            return frame, True
-
-        return frame, False
+        # -------- فقط برمی‌گرداند --------
+        done = self.count >= self.target_count
+        return frame, done, self.count

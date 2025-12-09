@@ -21,12 +21,14 @@ class blink:
 
         self.blink_count = 0
         self.state = "open"   # open → closed → open → blink detected
-
+        self.TARGET_REPS = 10  # تعداد تکرار مورد نیاز برای تمرین
 
     def process_frame(self, frame):
         h, w = frame.shape[:2]
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(rgb)
+
+        done = False
 
         if results.multi_face_landmarks:
             lm = results.multi_face_landmarks[0].landmark
@@ -35,24 +37,18 @@ class blink:
             r_dist = abs(lm[self.RIGHT_UP].y - lm[self.RIGHT_DOWN].y)
             eye_dist = (l_dist + r_dist) / 2.0
 
-            # ---- BLink State Machine ----
+            # ---- Blink State Machine ----
             if eye_dist < self.THRESH:   # چشم بسته
                 if self.state == "open":
                     self.state = "closed"
-
             else:                        # چشم باز شد = پایان چشمک
                 if self.state == "closed":
                     self.blink_count += 1
                     self.state = "open"
 
-            # نمایش شمارنده
-            cv2.putText(frame, f"BLINKS: {self.blink_count}/10", (20, 80),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,150,255), 2)
-
             # پایان تمرین
-            if self.blink_count >= 10:
-                cv2.putText(frame, "EXERCISE COMPLETE!", (20, 130),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0,200,0), 3)
-                return frame, True
+            if self.blink_count >= self.TARGET_REPS:
+                done = True
 
-        return frame, False
+        # بازگشت سه مقدار: frame, done, count
+        return frame, done, self.blink_count

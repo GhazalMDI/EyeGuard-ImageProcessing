@@ -35,7 +35,6 @@ class iris_x_exercise:
         self.counter = 0
         self.TARGET_REPS = 5
 
-
     def iris_center(self, landmarks, iris_idxs, w, h):
         xs = [landmarks[i].x * w for i in iris_idxs]
         ys = [landmarks[i].y * h for i in iris_idxs]
@@ -48,11 +47,12 @@ class iris_x_exercise:
         width = abs(x2 - x1) + 1e-6
         return cx, width
 
-
     def process_frame(self, frame):
         h, w = frame.shape[:2]
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(frame_rgb)
+
+        done = False  # وضعیت تکمیل تمرین
 
         if results.multi_face_landmarks:
             lm = results.multi_face_landmarks[0].landmark
@@ -76,15 +76,13 @@ class iris_x_exercise:
             avg_right = sum(self.right_buf) / len(self.right_buf)
             avg_both = (avg_left + avg_right) / 2.0
 
-
             # ---- STATE MACHINE ----
             if avg_both < self.RIGHT_TH:     # نگاه راست
                 if self.state == "looking_left":
                     self.state = "looking_right"
                     self.counter += 1
-                    print("REP:", self.counter)
                     if self.counter >= self.TARGET_REPS:
-                        return frame, True
+                        done = True
 
             elif avg_both > self.LEFT_TH:   # نگاه چپ
                 if self.state == "neutral":
@@ -94,11 +92,9 @@ class iris_x_exercise:
                 if self.state != "looking_left":
                     self.state = "neutral"
 
-            # رسم
+            # رسم نقاط ایریس روی فریم (اختیاری)
             cv2.circle(frame, (int(left_ix), int(left_iy)), 3, (0,255,0), -1)
             cv2.circle(frame, (int(right_ix), int(right_iy)), 3, (0,255,0), -1)
 
-            cv2.putText(frame, f"Reps: {self.counter}/{self.TARGET_REPS}",
-                        (10,170), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,200,0),2)
-
-        return frame, False
+        # بازگشت سه مقدار: frame, done, count
+        return frame, done, self.counter

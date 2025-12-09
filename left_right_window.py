@@ -1,9 +1,8 @@
 import cv2
 import time
-
 from ultralytics import YOLO
-from  neck_movement import found_neck
-    
+from neck_movement import found_neck
+
 class left_right:
     def __init__(self, target_count=5):
         self.model = YOLO("yolov8n-face.pt")  
@@ -12,8 +11,6 @@ class left_right:
         self.direction = None
         self.baseline_angle = None
         self.last_angle = None
-
-        print("CALIBRATION → لطفاً صاف بنشینید...")
         time.sleep(1)
 
     def process_frame(self, frame):
@@ -31,9 +28,8 @@ class left_right:
         current_angle = found_neck(results, frame, x=True)
 
         if current_angle is None:
-            cv2.putText(frame, "Face not detected!", (20, 90),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-            return frame, False
+            # بجای نوشتن روی فریم، فقط return count
+            return frame, False, self.count
 
         # بررسی حرکت چپ/راست
         current_angle, self.direction, self.count = self.check_move_right_left(
@@ -45,16 +41,13 @@ class left_right:
         )
         self.last_angle = current_angle 
 
-        # نمایش شمارش روی فریم
-        cv2.putText(frame, f"Count: {self.count}", (20, 90),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-
         # چک کردن تکمیل تمرین
         if self.count >= self.target_count:
             print("Exercise complete!")
-            return frame, True
+            return frame, True, self.count
 
-        return frame, False
+        # بازگشت فریم بدون نوشتن روی آن، و count جدا
+        return frame, False, self.count
     
     @staticmethod
     def check_move_right_left(current_angle, last_angle, direction, count, baseline_angle):

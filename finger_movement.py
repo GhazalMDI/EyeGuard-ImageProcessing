@@ -3,7 +3,6 @@ import mediapipe as mp
 import math
 import time
 
-
 class find_movement:
     def __init__(self):
         self.mp_hands = mp.solutions.hands
@@ -21,6 +20,7 @@ class find_movement:
         self.thresholds = None
 
         self.target_count = 10
+        self.initial_count = 10
         self.last_registered_status = None
         self.register_cooldown = 0.5
         self.last_register_time = 0
@@ -36,64 +36,48 @@ class find_movement:
         finger_tips = [landmarks[4], landmarks[8], landmarks[12], landmarks[16], landmarks[20]]
         return sum([self.distance(wrist, tip) for tip in finger_tips]) / 5.0
 
-    def draw_status(self, frame, text, y=80):
-        cv2.putText(frame, text, (20, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+    # ---------- حذف draw_status ----------
+    # def draw_status(self, frame, text, y=80):
+    #     cv2.putText(frame, text, (20, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
 
     def process_frame(self, frame):
-
         img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(img_rgb)
 
         if self.state == "CALIB_OPEN":
-            self.draw_status(frame, "CALIBRATION: Show OPEN hands", 100)
-
+            # Calibration بدون متن
             if results.multi_hand_landmarks and len(results.multi_hand_landmarks) == 2:
                 dists = []
                 for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
                     self.mp_draw.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
                     dists.append(self.avg_finger_distance(hand_landmarks))
-
                 self.open_dists = dists
-
                 if time.time() - self.state_start_time > 1.5:
                     self.state = "CALIB_CLOSE"
                     self.state_start_time = time.time()
-
-            return frame, False
+            return frame, False, self.initial_count - self.target_count
 
         if self.state == "CALIB_CLOSE":
-            self.draw_status(frame, "CALIBRATION: Show CLOSED hands", 80)
-
             if results.multi_hand_landmarks and len(results.multi_hand_landmarks) == 2:
                 dists = []
                 for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
                     self.mp_draw.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
                     dists.append(self.avg_finger_distance(hand_landmarks))
-
                 self.close_dists = dists
-
                 if time.time() - self.state_start_time > 1.5:
                     self.thresholds = [(o + c) / 2 for o, c in zip(self.open_dists, self.close_dists)]
                     self.state = "RUNNING"
-
-            return frame, False
+            return frame, False, self.initial_count - self.target_count
 
         if self.state == "RUNNING":
-
             status_list = []
-
             if results.multi_hand_landmarks and len(results.multi_hand_landmarks) == 2:
                 for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
                     self.mp_draw.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
-
                     avg_dist = self.avg_finger_distance(hand_landmarks)
                     threshold = self.thresholds[i]
-
                     status = "close" if avg_dist < threshold else "open"
                     status_list.append(status)
-
-                    self.draw_status(frame, f"Hand {i+1}: {status}", 80 + i*40)
-
                 if (
                     status_list[0] == status_list[1] and
                     status_list[0] != self.last_registered_status and
@@ -101,12 +85,6 @@ class find_movement:
                 ):
                     self.target_count -= 1
                     self.last_registered_status = status_list[0]
-                    self.last_register_time = time.time()
-
-            else:
-                self.draw_status(frame, "Show BOTH hands", 80)
-
-            self.draw_status(frame, f"Remaining: {self.target_count}",160)
 
             done = self.target_count <= 0
-            return frame, done
+            return frame, done, self.initial_count - self.target_count
