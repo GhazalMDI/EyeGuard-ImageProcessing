@@ -49,7 +49,7 @@ class find_movement:
             if results.multi_hand_landmarks and len(results.multi_hand_landmarks) == 2:
                 dists = []
                 for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
-                    self.mp_draw.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
+                    # self.mp_draw.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
                     dists.append(self.avg_finger_distance(hand_landmarks))
                 self.open_dists = dists
                 if time.time() - self.state_start_time > 1.5:
@@ -61,7 +61,7 @@ class find_movement:
             if results.multi_hand_landmarks and len(results.multi_hand_landmarks) == 2:
                 dists = []
                 for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
-                    self.mp_draw.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
+                    # self.mp_draw.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
                     dists.append(self.avg_finger_distance(hand_landmarks))
                 self.close_dists = dists
                 if time.time() - self.state_start_time > 1.5:
@@ -73,7 +73,7 @@ class find_movement:
             status_list = []
             if results.multi_hand_landmarks and len(results.multi_hand_landmarks) == 2:
                 for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
-                    self.mp_draw.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
+                    # self.mp_draw.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
                     avg_dist = self.avg_finger_distance(hand_landmarks)
                     threshold = self.thresholds[i]
                     status = "close" if avg_dist < threshold else "open"
