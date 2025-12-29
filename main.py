@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import cv2
-
-# کلاس‌های تمرین که هر کدوم process_frame(self, frame) دارند
 from forward_backward_window import forward_back
 from left_right_window import left_right
 from finger_movement import find_movement

@@ -1,5 +1,4 @@
 import cv2
-import time
 from ultralytics import YOLO
 from neck_movement import found_neck
 
@@ -11,7 +10,7 @@ class left_right:
         self.direction = None
         self.baseline_angle = None
         self.last_angle = None
-        time.sleep(1)
+        # time.sleep(1)
 
     def process_frame(self, frame):
         # تعیین baseline
@@ -48,19 +47,27 @@ class left_right:
 
         # بازگشت فریم بدون نوشتن روی آن، و count جدا
         return frame, False, self.count
-    
+
     @staticmethod
     def check_move_right_left(current_angle, last_angle, direction, count, baseline_angle):
-        if current_angle is None or last_angle is None or baseline_angle is None:
+        if current_angle is None or baseline_angle is None:
             return current_angle, direction, count
 
-        angle_diff = current_angle - baseline_angle
+        diff = current_angle - baseline_angle
+        TH = 12  # آستانه خروج از مرکز (می‌تونی 10 تا 15 تست کنی)
+        CENTER = 5  # آستانه برگشت به مرکز
 
-        # وقتی سر به سمت راست حرکت کرد
-        if -3 <= angle_diff <= 3 and direction != "right":
-            direction = "right"
+        # حالت اولیه
+        if direction is None:
+            direction = "center"
+
+        # اگر کاربر از مرکز خارج شد
+        if direction == "center" and abs(diff) > TH:
+            direction = "out"
+
+        # اگر بعد از خروج، برگشت داخل محدوده مرکز
+        elif direction == "out" and abs(diff) < CENTER:
             count += 1
-        elif angle_diff < -3 or angle_diff > 3:
-            direction = None 
+            direction = "center"
 
         return current_angle, direction, count
